@@ -1,0 +1,49 @@
+name: CI-CD
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Compilar proyecto
+        run: mvn -B compile
+
+      - name: Ejecutar pruebas unitarias
+        run: mvn -B test
+
+      - name: Generar archivos .jar
+        run: mvn -B package -DskipTests
+
+      - name: Renombrar jars con nombres finales
+        run: |
+          mkdir -p artifacts
+          cp target/sistema-notas-notas.jar artifacts/sistema-notas.jar
+          cp target/sistema-prestamos-prestamos.jar artifacts/sistema-prestamos.jar
+
+      - name: Publicar sistema-notas.jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: sistema-notas
+          path: artifacts/sistema-notas.jar
+
+      - name: Publicar sistema-prestamos.jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: sistema-prestamos
+          path: artifacts/sistema-prestamos.jar
